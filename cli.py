@@ -182,8 +182,7 @@ def configure_branch_permissions(workspace, repo_name, branch, user):
     }
     data = {
         "kind": "push",
-        "branch_match_kind": "branching_model",
-        "branch_type": "development",
+        "pattern": branch,
         'users': [
             {
                 "username" : user
