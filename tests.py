@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch, MagicMock
 from click.testing import CliRunner
-from cli import create_project, delete_project, create_repo, delete_repo, list_projects
+from cli import create_project, delete_project, create_repo, delete_repo, list_projects, configure_branch_permissions
 
 class TestBitbucketCLI(unittest.TestCase):
 
@@ -51,6 +51,13 @@ class TestBitbucketCLI(unittest.TestCase):
         self.assertEqual(result.exit_code, 0)
         self.assertIn('Project: Project1 - Description1', result.output)
         self.assertIn('Project: Project2 - Description2', result.output)
+
+    @patch('cli.requests.post')
+    def test_configure_branch_permissions(self, mock_post):
+        runner = CliRunner()
+        mock_post.return_value.status_code = 200
+        result = runner.invoke(configure_branch_permissions, ['--workspace', 'test-ale-upwork', '--repo_name', 'test_repo', '--branch', 'master', '--user', 'test'])
+        self.assertEqual(result.exit_code, 0)
 
 if __name__ == '__main__':
     unittest.main()
