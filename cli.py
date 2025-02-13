@@ -94,7 +94,6 @@ def delete_repo(workspace, repo_name):
     else:
         click.echo(f"Failed to delete repository: {response.text}")
 
-
 """ 
 Adding and deleting users through the Bitbucket API
 
@@ -152,7 +151,6 @@ Resources:
 #     else:
 #         click.echo(f"Failed to delete user: {response.text}")
 
-
 @click.command()
 @click.option('--workspace', prompt=True, help='Workspace ID')
 def list_projects(workspace):
@@ -170,13 +168,79 @@ def list_projects(workspace):
     else:
         click.echo(f"Failed to retrieve projects: {response.text}")
 
+@click.command()
+@click.option('--workspace', prompt=True, help='Workspace ID')
+@click.option('--repo_name', prompt=True, help='Repository slug')
+@click.option('--branch', prompt=True, help='Branch name')
+@click.option('--user', prompt=True, help='Username to exempt')
+def configure_branch_permissions(workspace, repo_name, branch, user):
+    """Configure branch permissions to exempt a user from needing a pull request"""
+    url = f"{BASE_URL}/repositories/{workspace}/{repo_name}/branch-restrictions"
+    headers = {
+        'Authorization': f'Bearer {BITBUCKET_TOKEN}',
+        'Content-Type': 'application/json'
+    }
+    data = {
+        "kind": "push",
+        "branch_match_kind": "branching_model",
+        "branch_type": "development",
+        'users': [
+            {
+                "username" : user
+            }
+        ]
+    }
+    response = requests.post(url, headers=headers, json=data)
+    if response.status_code == 201:
+        click.echo("Branch permissions configured successfully.")
+    else:
+        click.echo(f"response code is {response.status_code}")
+        click.echo(f"Failed to configure branch permissions: {response.text}")
 
+@click.command()
+@click.option('--workspace', prompt=True, help='Workspace ID')
+@click.option('--repo_name', prompt=True, help='Repository slug')
+def list_branch_restrictions(workspace, repo_name):
+    """List all branch restrictions for a repository"""
+    url = f"{BASE_URL}/repositories/{workspace}/{repo_name}/branch-restrictions"
+    headers = {
+        'Authorization': f'Bearer {BITBUCKET_TOKEN}',
+        'Content-Type': 'application/json'
+    }
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        restrictions = response.json().get('values', [])
+        for restriction in restrictions:
+            click.echo(f"Restriction ID: {restriction['id']}, Kind: {restriction['kind']}, Pattern: {restriction['pattern']}")
+    else:
+        click.echo(f"Failed to retrieve branch restrictions: {response.text}")
+
+cli.add_command(list_branch_restrictions)
+
+@click.command()
+def get_current_user():
+    """Retrieve the current user data"""
+    url = f"{BASE_URL}/user"
+    headers = {
+        'Authorization': f'Bearer {BITBUCKET_TOKEN}',
+        'Content-Type': 'application/json'
+    }
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        user_data = response.json()
+        click.echo(f"Username: {user_data['username']}")
+        click.echo(f"Display Name: {user_data['display_name']}")
+        click.echo(f"Account ID: {user_data['account_id']}")
+    else:
+        click.echo(f"Failed to retrieve user data: {response.text}")
 
 cli.add_command(create_project)
 cli.add_command(delete_project)
 cli.add_command(create_repo)
 cli.add_command(delete_repo)
 cli.add_command(list_projects)
+cli.add_command(configure_branch_permissions)
+cli.add_command(get_current_user)
 #cli.add_command(add_user)
 #cli.add_command(delete_user)
 
