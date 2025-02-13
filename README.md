@@ -84,6 +84,14 @@ python cli.py delete-repo --workspace "test-ale-upwork" --repo_name "repo"
 python cli.py list-projects --workspace "test-ale-upwork"
 ```
 
+### Configure branch permissions
+
+Option to configure branch permissions, specifically to exempt users needing a pull request for pushing changes to the default branch.
+
+```bash
+python cli.py configure-branch-permissions --workspace "test-ale-upwork" --repo_name "repo" --branch "master" --user "username"
+```
+
 ## Note
 
 Bitbucket Cloud API does not support user creation via API. Refer to the following resources for more information:
